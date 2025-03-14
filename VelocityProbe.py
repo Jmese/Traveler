@@ -189,12 +189,12 @@ if __name__ == "__main__":
 
     # Define desired maximum velocities (setpoint update rates) in rad/s
     desired_theta_velocity = 500  # Adjust as needed
-    desired_rho_velocity   = 0.5  # Adjust as needed
+    desired_rho_velocity   = 0.25  # Adjust as needed
 
     # Initialize PD controllers with the current (initial) setpoints.
     # The gains remain constant here.
-    Theta_PD_Controller = PDController(100, 0.05, current_theta_setpoint)
-    Rho_PD_Controller   = PDController(40, 0.05, current_rho_setpoint)
+    Theta_PD_Controller = PDController(10, 0.05, current_theta_setpoint)
+    Rho_PD_Controller   = PDController(10, 0.05, current_rho_setpoint)
     # -------------------------------------------------------
 
     # Setup data logging

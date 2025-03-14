@@ -121,11 +121,11 @@ if __name__ == "__main__":
     soft_start_duration = 0.0
     nodes = [0, 1]
     
-    target_rho = 3.14
+    target_rho = 2
     target_theta = 3.14
     
-    Theta_PD_Controller = PDController(6, 0.07, target_theta)
-    Rho_PD_Controller = PDController(29, 0.07, target_rho)
+    Theta_PD_Controller = PDController(3, 0.07, target_theta)
+    Rho_PD_Controller = PDController(3, 0.07, target_rho)
     
     bus = can.interface.Bus("can0", interface="socketcan")
     
