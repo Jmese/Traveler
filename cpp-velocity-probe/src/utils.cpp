@@ -13,7 +13,7 @@ void saveDataToCSV(const std::string& filename, const std::vector<std::vector<do
     std::ofstream file(filename);
 
     // Write column headers
-    file << "Elapsed Time,Phi 1,Phi 2,Motor0 Velocity,Motor1 Velocity,Motor Torque 0,Motor Torque 1\n";
+    file << "Elapsed Time,Motor0 Position,Motor1 Position,Motor0 Velocity,Motor1 Velocity,Motor Torque 0,Motor Torque 1\n";
 
     // Write data
     for (const auto& row : data) {

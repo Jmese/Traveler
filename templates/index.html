@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Control Interface</title>
+</head>
+<body>
+    <h1>Control Interface</h1>
+    <form action="{{ url_for('start') }}" method="post">
+        <label for="initial_rho">Initial Rho:</label>
+        <input type="text" id="initial_rho" name="initial_rho"><br><br>
+        <label for="initial_theta">Initial Theta:</label>
+        <input type="text" id="initial_theta" name="initial_theta"><br><br>
+        <label for="kp_initial">Kp (Initial):</label>
+        <input type="text" id="kp_initial" name="kp_initial"><br><br>
+        <label for="kd_initial">Kd (Initial):</label>
+        <input type="text" id="kd_initial" name="kd_initial"><br><br>
+        <label for="desired_rho">Desired Rho:</label>
+        <input type="text" id="desired_rho" name="desired_rho"><br><br>
+        <label for="desired_theta">Desired Theta:</label>
+        <input type="text" id="desired_theta" name="desired_theta"><br><br>
+        <label for="desired_rho_velocity">Desired Rho Velocity:</label>
+        <input type="text" id="desired_rho_velocity" name="desired_rho_velocity"><br><br>
+        <label for="desired_theta_velocity">Desired Theta Velocity:</label>
+        <input type="text" id="desired_theta_velocity" name="desired_theta_velocity"><br><br>
+        <button type="submit">START</button>
+    </form>
+    <br>
+    <form action="{{ url_for('stop') }}" method="post">
+        <label for="save_data">Save Data:</label>
+        <input type="checkbox" id="save_data" name="save_data"><br><br>
+        <label for="test_string">Test String:</label>
+        <input type="text" id="test_string" name="test_string"><br><br>
+        <button type="submit">STOP</button>
+    </form>
+</body>
+</html>

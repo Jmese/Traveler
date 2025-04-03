@@ -46,8 +46,8 @@ int main() {
     float initial_theta = 3.14;
 
     // Initialize PD Controllers
-    PDController thetaController(0.2, 0.115, initial_theta);
-    PDController rhoController(0.2 , 0.115, initial_rho);
+    PDController thetaController(0.3, 0.01, initial_theta);
+    PDController rhoController(0.4 , 0.02, initial_rho);
 
     // Set initial rho and theta positions for 2 seconds
     auto start_time = steady_clock::now();
@@ -80,11 +80,11 @@ int main() {
 
     // Define desired maximum velocities (setpoint update rates) in rad/s
     float desired_theta_velocity = 1.0;  // Adjust as needed
-    float desired_rho_velocity = 1;    // Adjust as needed
+    float desired_rho_velocity = 0.25;    // Adjust as needed
 
     // Initialize PD controllers with the current (initial) setpoints.
-    thetaController = PDController(30, 0.25, initial_theta);
-    rhoController = PDController(20, 0.2, initial_rho);
+    thetaController = PDController(3, 0.05, initial_theta);
+    rhoController = PDController(3, 0.05, initial_rho);
 
     // Main control loop
     vector<vector<double>> data_log;
@@ -134,16 +134,22 @@ int main() {
 
             // Log data
             auto elapsed_time = duration<double>(current_time - elapsed_start_time).count();
+            float torque_target_0, torque_estimate_0;
+            float torque_target_1, torque_estimate_1;
+
+            std::tie(torque_target_0, torque_estimate_0) = CANInterface::getTorqueEstimates(nodes[0]);
+            std::tie(torque_target_1, torque_estimate_1) = CANInterface::getTorqueEstimates(nodes[1]);
+
             data_log.push_back({
                 elapsed_time, 
-                phi_1, 
-                phi_2, 
-                current_velocity_0,  // Motor0 velocity
-                current_velocity_1,  // Motor1 velocity
-                get<0>(motor_torques), 
-                get<1>(motor_torques)
+                current_position_0, 
+                current_position_1, 
+                current_velocity_0,
+                current_velocity_1,
+                torque_estimate_0, 
+                torque_estimate_1, 
             });
-            
+
             auto loop_end_time = steady_clock::now(); // Measure loop end time
         }
     } catch (const exception& e) {

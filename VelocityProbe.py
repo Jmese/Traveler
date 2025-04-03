@@ -189,7 +189,7 @@ if __name__ == "__main__":
 
     # Define desired maximum velocities (setpoint update rates) in rad/s
     desired_theta_velocity = 500  # Adjust as needed
-    desired_rho_velocity   = 1  # Adjust as needed
+    desired_rho_velocity   = 12  # Adjust as needed
 
     # Initialize PD controllers with the current (initial) setpoints.
     # The gains remain constant here.
