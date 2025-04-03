@@ -58,5 +58,6 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "/home/traveler/Traveler_Hopper_sw-bundle/cpp-ui-project"
 }

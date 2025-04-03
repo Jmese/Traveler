@@ -7,9 +7,15 @@
 #include <cmath>
 #include <tuple>
 #include <armadillo>
+#include <vector>
 
 void saveDataToCSV(const std::string& filename, const std::vector<std::vector<double>>& data) {
     std::ofstream file(filename);
+
+    // Write column headers
+    file << "Elapsed Time,Phi 1,Phi 2,Motor0 Velocity,Motor1 Velocity,Motor Torque 0,Motor Torque 1\n";
+
+    // Write data
     for (const auto& row : data) {
         for (size_t i = 0; i < row.size(); ++i) {
             file << row[i];
@@ -19,12 +25,8 @@ void saveDataToCSV(const std::string& filename, const std::vector<std::vector<do
         }
         file << "\n";
     }
-}
 
-double calculateAverage(const std::vector<double>& values) {
-    if (values.empty()) return 0.0;
-    double sum = std::accumulate(values.begin(), values.end(), 0.0);
-    return sum / values.size();
+    file.close();
 }
 
 std::string getCurrentTimestamp() {

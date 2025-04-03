@@ -151,7 +151,7 @@ std::tuple<float, float> CANInterface::getEncoderEstimates(int node_id) {
                 memcpy(&velocity, &frame.data[4], sizeof(float));
                 return std::make_tuple(position, velocity);
             } else {
-                std::cerr << "Unexpected CAN frame received: ID=" << frame.can_id << ", DLC=" << frame.can_dlc << std::endl;
+                // std::cerr << "Unexpected CAN frame received: ID=" << frame.can_id << ", DLC=" << frame.can_dlc << std::endl;
                 for (int i = 0; i < frame.can_dlc; ++i) {
                     //std::cerr << "Data[" << i << "] = " << static_cast<int>(frame.data[i]) << std::endl;
                 }

@@ -139,7 +139,7 @@ if __name__ == "__main__":
     nodes = [0, 1]
     
     # Final desired targets (in radians)
-    final_target_rho = 3
+    final_target_rho = 2.6
     final_target_theta = 3.14
 
     # Connect to the CAN bus
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     set_torque_control_mode(Motor1)
 
     # Set initial rho and theta positions for 2 seconds
-    initial_rho = 0.7
+    initial_rho = 0.8
     initial_theta = 3.14
 
     current_time = time.time()  
@@ -165,8 +165,8 @@ if __name__ == "__main__":
     current_position_1, current_velocity_1 = encoder_estimates(Motor1)        
     phi_1, phi_2, phi_1_vel, phi_2_vel, theta, rho, theta_vel, rho_vel = get_state_variables(current_position_0, current_position_1, current_velocity_0, current_velocity_1)
 
-    Theta_PD_Controller = PDController(0.3, 0.02, initial_theta)
-    Rho_PD_Controller   = PDController(0.32, 0.02, initial_rho)
+    Theta_PD_Controller = PDController(0.3, 0.175, initial_theta)
+    Rho_PD_Controller   = PDController(0.3, 0.075, initial_rho)
 
     theta_torque = Theta_PD_Controller.update(theta,current_time)
     rho_torque = Rho_PD_Controller.update(rho, current_time)
@@ -189,12 +189,12 @@ if __name__ == "__main__":
 
     # Define desired maximum velocities (setpoint update rates) in rad/s
     desired_theta_velocity = 500  # Adjust as needed
-    desired_rho_velocity   = 0.25  # Adjust as needed
+    desired_rho_velocity   = 1  # Adjust as needed
 
     # Initialize PD controllers with the current (initial) setpoints.
     # The gains remain constant here.
-    Theta_PD_Controller = PDController(10, 0.05, current_theta_setpoint)
-    Rho_PD_Controller   = PDController(10, 0.05, current_rho_setpoint)
+    Theta_PD_Controller = PDController(30, 0.25, current_theta_setpoint)
+    Rho_PD_Controller   = PDController(20, 0.2, current_rho_setpoint)
     # -------------------------------------------------------
 
     # Setup data logging
