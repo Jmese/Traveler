@@ -1,4 +1,3 @@
-
 #ifndef CAN_INTERFACE_H
 #define CAN_INTERFACE_H
 
@@ -30,6 +29,8 @@ public:
     static std::tuple<float, float> getEncoderEstimates(int node_id);
     static std::tuple<float, float> getTorques(float theta_torque, float rho_torque);
     static std::tuple<float, float> getTorqueEstimates(int node_id);
+    static void sendTorqueRequest(int node_id);
+    static std::tuple<float, float> receiveTorqueResponse(int node_id);
 
 private:
     int socket_fd;

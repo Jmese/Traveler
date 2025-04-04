@@ -144,20 +144,20 @@ std::tuple<float, float> CANInterface::getEncoderEstimates(int node_id) {
     const int max_retries = 5;
     int retries = 0;
     while (retries < max_retries) {
-        if (canInterface.receive(frame, 2000)) { // Increased timeout to 2000 ms
+        if (canInterface.receive(frame, 500)) { // Increased timeout to 2000 ms
             if (frame.can_id == (node_id << 5 | 0x09) && frame.can_dlc == 8) {
                 float position, velocity;
                 memcpy(&position, &frame.data[0], sizeof(float));
                 memcpy(&velocity, &frame.data[4], sizeof(float));
                 return std::make_tuple(position, velocity);
             } else {
-                std::cerr << "Unexpected CAN frame received: ID=" << frame.can_id << ", DLC=" << frame.can_dlc << std::endl;
+               // std::cerr << "Unexpected CAN frame received: ID=" << frame.can_id << ", DLC=" << frame.can_dlc << std::endl;
                 for (int i = 0; i < frame.can_dlc; ++i) {
                     //std::cerr << "Data[" << i << "] = " << static_cast<int>(frame.data[i]) << std::endl;
                 }
             }
         } else {
-            std::cerr << "Failed to receive CAN frame for node " << node_id << " (attempt " << retries + 1 << ")" << std::endl;
+           //std::cerr << "Failed to receive CAN frame for node " << node_id << " (attempt " << retries + 1 << ")" << std::endl;
         }
         retries++;
     }
@@ -180,10 +180,10 @@ std::tuple<float, float> CANInterface::getTorqueEstimates(int node_id) {
                 memcpy(&torque_estimate, &frame.data[4], sizeof(float)); // Bytes 4-7: Torque_Estimate
                 return std::make_tuple(torque_target, torque_estimate);
             } else {
-                std::cerr << "Unexpected CAN frame received: ID=" << frame.can_id << ", DLC=" << frame.can_dlc << std::endl;
+               // std::cerr << "Unexpected CAN frame received: ID=" << frame.can_id << ", DLC=" << frame.can_dlc << std::endl;
             }
         } else {
-            std::cerr << "Failed to receive CAN frame for node " << node_id << " (attempt " << retries + 1 << ")" << std::endl;
+           // std::cerr << "Failed to receive CAN frame for node " << node_id << " (attempt " << retries + 1 << ")" << std::endl;
         }
         retries++;
     }
@@ -193,4 +193,24 @@ std::tuple<float, float> CANInterface::getTorqueEstimates(int node_id) {
 std::tuple<float, float> CANInterface::getTorques(float theta_torque, float rho_torque) {
     // Implementation for getting torques
     return std::make_tuple(0.0f, 0.0f); // Placeholder return value
+}
+
+void CANInterface::sendTorqueRequest(int node_id) {
+    can_frame frame;
+    frame.can_id = (node_id << 5 | 0x1c); // Command ID for Get_Torques
+    frame.can_dlc = 0; // No data payload for this command
+    canInterface.send(frame);
+}
+
+std::tuple<float, float> CANInterface::receiveTorqueResponse(int node_id) {
+    can_frame frame;
+    if (canInterface.receive(frame, 500)) { // 500 ms timeout
+        if (frame.can_id == (node_id << 5 | 0x1c) && frame.can_dlc == 8) {
+            float torque_target, torque_estimate;
+            memcpy(&torque_target, &frame.data[0], sizeof(float)); // Bytes 0-3: Torque_Target
+            memcpy(&torque_estimate, &frame.data[4], sizeof(float)); // Bytes 4-7: Torque_Estimate
+            return std::make_tuple(torque_target, torque_estimate);
+        }
+    }
+    return std::make_tuple(0.0f, 0.0f); // Default values on failure
 }
