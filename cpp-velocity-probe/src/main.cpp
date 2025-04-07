@@ -11,6 +11,7 @@
 #include "CANInterface.h"
 #include "GPIOInterface.h"
 #include "utils.h"
+#include <wiringPi.h> // Include WiringPi header if not already included
 
 using namespace std;
 using namespace std::chrono;
@@ -24,16 +25,24 @@ void handle_sigint(int sig) {
 }
 
 int main() {
+
     // Register signal handler
     signal(SIGINT, handle_sigint);
 
     // Initialize CAN bus
     canInterface.flush();
 
-    // Setup GPIO for PWM
-    GPIOInterface gpioInterface(13, 1.0); // Pin 13, 1Hz frequency
-    gpioInterface.setup();
+    // Generate voltage pulses on GPIO13 and GPIO17
+    GPIOInterface gpio13(13, 1.0); // Pin 13
+    GPIOInterface gpio17(17, 1.0); // Pin 17
+    // Setup GPIO pins
+    gpio13.setup();
+    gpio17.setup();
 
+    // Send initial pulse before the main control loop
+    gpio13.generatePulse();
+    gpio17.generatePulse();
+    
     // Define nodes
     int nodes[] = {0, 1};
     CANInterface::setClosedLoopControl(nodes[0]);
@@ -74,54 +83,58 @@ int main() {
         this_thread::sleep_for(milliseconds(50)); // Increased control loop delay to 50 ms
     }
 
+     
     // Final desired targets (in radians)
     float final_target_rho = 3.0;
     float final_target_theta = 3.14;
 
     // Define desired maximum velocities (setpoint update rates) in rad/s
-    float desired_theta_velocity = 500.0;  // Adjust as needed
-    float desired_rho_velocity = 0.1;    // Adjust as needed
+    float desired_theta_velocity = 10;  // Adjust as needed
+    float desired_rho_velocity;    // Adjust as needed
 
     // Initialize PD controllers with the current (initial) setpoints.
-    thetaController = PDController(20, 0.25, initial_theta);
-    rhoController = PDController(30, 0.2, initial_rho);
+    thetaController = PDController(30, 0.25, initial_theta);
+    rhoController = PDController(30, 0.25, initial_rho);
 
     // Main control loop
     vector<vector<double>> data_log;
     auto elapsed_start_time = steady_clock::now();
     auto last_setpoint_update_time = steady_clock::now();
+
     try {
         while (!stop) {
-            auto current_time = steady_clock::now();
-            auto elapsed_time = duration<double>(current_time - elapsed_start_time).count();
+            auto loop_start_time = steady_clock::now(); // Measure loop start time
 
-            // Get encoder estimates
+            auto current_time = steady_clock::now();
             float current_position_0, current_velocity_0;
             float current_position_1, current_velocity_1;
+
             tie(current_position_0, current_velocity_0) = CANInterface::getEncoderEstimates(nodes[0]);
             tie(current_position_1, current_velocity_1) = CANInterface::getEncoderEstimates(nodes[1]);
 
-            // Get torque estimates
-            float torque_target_0, torque_estimate_0;
-            float torque_target_1, torque_estimate_1;
-            std::tie(torque_target_0, torque_estimate_0) = CANInterface::getTorqueEstimates(nodes[0]);
-            std::tie(torque_target_1, torque_estimate_1) = CANInterface::getTorqueEstimates(nodes[1]);
-
-            // Log data
-            data_log.push_back({
-                elapsed_time,
-                current_position_0,
-                current_position_1,
-                current_velocity_0,
-                current_velocity_1,
-                torque_estimate_0,
-                torque_estimate_1,
-            });
-
-            // Control logic
             auto state_vars = getStateVariables(current_position_0, current_position_1, current_velocity_0, current_velocity_1);
+            float phi_1 = get<0>(state_vars);
+            float phi_2 = get<1>(state_vars);
             float theta = get<4>(state_vars);
             float rho = get<5>(state_vars);
+
+            // Gradually update the setpoints to control velocity
+            auto dt_setpoint = duration<float>(current_time - last_setpoint_update_time).count();
+            if (dt_setpoint > 0) {
+                if (thetaController.setpoint < final_target_theta) {
+                    thetaController.setpoint = min(thetaController.setpoint + static_cast<double>(desired_theta_velocity) * dt_setpoint, static_cast<double>(final_target_theta));
+                } else if (thetaController.setpoint > final_target_theta) {
+                    thetaController.setpoint = max(thetaController.setpoint - static_cast<double>(desired_theta_velocity) * dt_setpoint, static_cast<double>(final_target_theta));
+                }
+
+                if (rhoController.setpoint < final_target_rho) {
+                    rhoController.setpoint = min(rhoController.setpoint + static_cast<double>(desired_rho_velocity) * dt_setpoint, static_cast<double>(final_target_rho));
+                } else if (rhoController.setpoint > final_target_rho) {
+                    rhoController.setpoint = max(rhoController.setpoint - static_cast<double>(desired_rho_velocity) * dt_setpoint, static_cast<double>(final_target_rho));
+                }
+
+                last_setpoint_update_time = current_time;
+            }
 
             float theta_torque = thetaController.update(theta, duration<float>(current_time.time_since_epoch()).count());
             float rho_torque = rhoController.update(rho, duration<float>(current_time.time_since_epoch()).count());
@@ -129,6 +142,26 @@ int main() {
             auto motor_torques = getTorques(theta_torque, rho_torque);
             CANInterface::setTorque(nodes[0], get<0>(motor_torques));
             CANInterface::setTorque(nodes[1], get<1>(motor_torques));
+
+            // Log data
+            auto elapsed_time = duration<double>(current_time - elapsed_start_time).count();
+            float torque_target_0, torque_estimate_0;
+            float torque_target_1, torque_estimate_1;
+
+            std::tie(torque_target_0, torque_estimate_0) = CANInterface::getTorqueEstimates(nodes[0]);
+            std::tie(torque_target_1, torque_estimate_1) = CANInterface::getTorqueEstimates(nodes[1]);
+
+            data_log.push_back({
+                elapsed_time, 
+                current_position_0, 
+                current_position_1, 
+                current_velocity_0,
+                current_velocity_1,
+                torque_estimate_0, 
+                torque_estimate_1, 
+            });
+
+            auto loop_end_time = steady_clock::now(); // Measure loop end time
         }
     } catch (const exception& e) {
         cerr << "Error: " << e.what() << endl;
@@ -142,7 +175,12 @@ int main() {
     }
     cerr << "Nodes set to idle. Exiting program." << endl;
 
-    gpioInterface.cleanup();
+    // Send pulse upon keyboard interrupt
+    gpio13.generatePulse();
+    gpio17.generatePulse();
+
+    gpio13.cleanup();
+    gpio17.cleanup(); 
 
     // Calculate the average logging frequency
     if (data_log.size() > 1) {

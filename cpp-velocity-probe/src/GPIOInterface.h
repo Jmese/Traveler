@@ -9,7 +9,8 @@ class GPIOInterface {
 public:
     GPIOInterface(int pin, float frequency);
     ~GPIOInterface();
-
+    
+    void generatePulse();
     void setup();
     void cleanup();
 

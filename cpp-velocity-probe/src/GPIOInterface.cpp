@@ -19,6 +19,13 @@ void GPIOInterface::setup() {
     pwmWrite(pin, 500); // 50% duty cycle
 }
 
+void GPIOInterface::generatePulse() {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, HIGH); // Set pin HIGH
+    delay(10);               // Keep HIGH for 10 ms
+    digitalWrite(pin, LOW);  // Set pin LOW
+}
+
 void GPIOInterface::cleanup() {
     pwmWrite(pin, 0);
     pinMode(pin, INPUT);
