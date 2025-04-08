@@ -12,11 +12,6 @@ CMakeFiles/VelocityProbe.dir/PDController.cpp.o
  /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/PDController.cpp
  /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/PDController.h
 CMakeFiles/VelocityProbe.dir/main.cpp.o
- /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/CANInterface.h
- /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/GPIOInterface.h
- /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/PDController.h
- /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/main.cpp
- /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/utils.h
 CMakeFiles/VelocityProbe.dir/utils.cpp.o
  /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/utils.cpp
  /home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe/src/utils.h

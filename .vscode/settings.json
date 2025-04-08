@@ -57,7 +57,11 @@
         "streambuf": "cpp",
         "thread": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "complex": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "variant": "cpp"
     },
-    "cmake.sourceDirectory": "/home/traveler/Traveler_Hopper_sw-bundle/cpp-ui-project"
+    "cmake.sourceDirectory": "/home/traveler/Traveler_Hopper_sw-bundle/cpp-velocity-probe"
 }

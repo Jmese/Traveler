@@ -11,11 +11,6 @@ CMakeFiles/VelocityProbe.dir/GPIOInterface.cpp.o: GPIOInterface.h
 CMakeFiles/VelocityProbe.dir/PDController.cpp.o: PDController.cpp
 CMakeFiles/VelocityProbe.dir/PDController.cpp.o: PDController.h
 
-CMakeFiles/VelocityProbe.dir/main.cpp.o: CANInterface.h
-CMakeFiles/VelocityProbe.dir/main.cpp.o: GPIOInterface.h
-CMakeFiles/VelocityProbe.dir/main.cpp.o: PDController.h
-CMakeFiles/VelocityProbe.dir/main.cpp.o: main.cpp
-CMakeFiles/VelocityProbe.dir/main.cpp.o: utils.h
 
 CMakeFiles/VelocityProbe.dir/utils.cpp.o: utils.cpp
 CMakeFiles/VelocityProbe.dir/utils.cpp.o: utils.h
