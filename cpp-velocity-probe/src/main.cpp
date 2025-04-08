@@ -26,6 +26,11 @@ void handle_sigint(int sig) {
 
 int main() {
 
+    // Prompt the user for rho velocity input before anything else
+    float desired_rho_velocity;
+    cout << "Enter the desired rho velocity (rad/s): ";
+    cin >> desired_rho_velocity;
+
     // Register signal handler
     signal(SIGINT, handle_sigint);
 
@@ -51,16 +56,16 @@ int main() {
     CANInterface::setTorqueControlMode(nodes[1]);
 
     // Set initial positions
-    float initial_rho = 0.7;
+    float initial_rho = 0.6;
     float initial_theta = 3.14;
 
     // Initialize PD Controllers
-    PDController thetaController(0.3, 0.01, initial_theta);
-    PDController rhoController(0.4 , 0.02, initial_rho);
+    PDController thetaController(0.5, 0.05, initial_theta);
+    PDController rhoController( 2.25 , 0.125, initial_rho);
 
     // Set initial rho and theta positions for 2 seconds
     auto start_time = steady_clock::now();
-    while (steady_clock::now() - start_time < seconds(2)) {
+    while (steady_clock::now() - start_time < milliseconds(3000)) {
         float current_position_0, current_velocity_0;
         float current_position_1, current_velocity_1;
 
@@ -80,7 +85,7 @@ int main() {
         CANInterface::setTorque(nodes[0], get<0>(motor_torques));
         CANInterface::setTorque(nodes[1], get<1>(motor_torques));
 
-        this_thread::sleep_for(milliseconds(50)); // Increased control loop delay to 50 ms
+        this_thread::sleep_for(milliseconds(10)); // Increased control loop delay to 50 ms
     }
 
      
@@ -89,8 +94,7 @@ int main() {
     float final_target_theta = 3.14;
 
     // Define desired maximum velocities (setpoint update rates) in rad/s
-    float desired_theta_velocity = 10;  // Adjust as needed
-    float desired_rho_velocity;    // Adjust as needed
+    float desired_theta_velocity = 100;  // Adjust as needed
 
     // Initialize PD controllers with the current (initial) setpoints.
     thetaController = PDController(30, 0.25, initial_theta);
@@ -207,8 +211,8 @@ int main() {
         auto now = system_clock::now();
         time_t now_c = system_clock::to_time_t(now);
         stringstream ss;
-        ss << put_time(localtime(&now_c), "%H.%M_%m.%d");
-        string filename = test_string + "[" + ss.str() + "]_rrho_0.50.csv";
+        ss << put_time(localtime(&now_c), "%H%M_%m%d");
+        string filename = test_string + "[" + ss.str() + "]_" + to_string(desired_rho_velocity) + ".csv";
         string file_path = "/home/traveler/Traveler_Hopper_sw-bundle/Data/DPROBE";
         string full_path = file_path + "/" + filename;
 

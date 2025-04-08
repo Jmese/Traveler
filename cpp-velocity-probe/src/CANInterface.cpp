@@ -144,7 +144,7 @@ std::tuple<float, float> CANInterface::getEncoderEstimates(int node_id) {
     const int max_retries = 5;
     int retries = 0;
     while (retries < max_retries) {
-        if (canInterface.receive(frame, 500)) { // Increased timeout to 2000 ms
+        if (canInterface.receive(frame, 5)) { // Increased timeout to 2000 ms
             if (frame.can_id == (node_id << 5 | 0x09) && frame.can_dlc == 8) {
                 float position, velocity;
                 memcpy(&position, &frame.data[0], sizeof(float));
@@ -173,7 +173,7 @@ std::tuple<float, float> CANInterface::getTorqueEstimates(int node_id) {
     const int max_retries = 5;
     int retries = 0;
     while (retries < max_retries) {
-        if (canInterface.receive(frame, 2000)) { // 2000 ms timeout
+        if (canInterface.receive(frame, 5)) { // 2000 ms timeout
             if (frame.can_id == (node_id << 5 | 0x1c) && frame.can_dlc == 8) {
                 float torque_target, torque_estimate;
                 memcpy(&torque_target, &frame.data[0], sizeof(float)); // Bytes 0-3: Torque_Target
@@ -204,7 +204,7 @@ void CANInterface::sendTorqueRequest(int node_id) {
 
 std::tuple<float, float> CANInterface::receiveTorqueResponse(int node_id) {
     can_frame frame;
-    if (canInterface.receive(frame, 500)) { // 500 ms timeout
+    if (canInterface.receive(frame, 5)) { // 500 ms timeout
         if (frame.can_id == (node_id << 5 | 0x1c) && frame.can_dlc == 8) {
             float torque_target, torque_estimate;
             memcpy(&torque_target, &frame.data[0], sizeof(float)); // Bytes 0-3: Torque_Target

@@ -12,21 +12,18 @@ void GPIOInterface::setup() {
         std::cerr << "Error setting up WiringPi" << std::endl;
         exit(EXIT_FAILURE);
     }
-    pinMode(pin, PWM_OUTPUT);
-    pwmSetMode(PWM_MODE_MS);
-    pwmSetClock(192); // 19.2 MHz / 192 = 100 kHz
-    pwmSetRange(1000); // 100 kHz / 1000 = 100 Hz
-    pwmWrite(pin, 500); // 50% duty cycle
+    pinMode(pin, OUTPUT); // Set pin to OUTPUT mode
+    digitalWrite(pin, LOW); // Ensure pin starts LOW
 }
 
 void GPIOInterface::generatePulse() {
-    pinMode(pin, OUTPUT);
-    digitalWrite(pin, HIGH); // Set pin HIGH
-    delay(10);               // Keep HIGH for 10 ms
-    digitalWrite(pin, LOW);  // Set pin LOW
+    pinMode(pin, OUTPUT);       // Ensure pin is in OUTPUT mode
+    digitalWrite(pin, HIGH);    // Set pin HIGH
+    delay(10);                  // Keep HIGH for 10 ms
+    digitalWrite(pin, LOW);     // Set pin LOW
 }
 
 void GPIOInterface::cleanup() {
-    pwmWrite(pin, 0);
-    pinMode(pin, INPUT);
+    digitalWrite(pin, LOW);     // Set pin LOW before cleanup
+    pinMode(pin, INPUT);        // Set pin to INPUT mode
 }
