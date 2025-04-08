@@ -56,50 +56,23 @@ int main() {
     CANInterface::setTorqueControlMode(nodes[1]);
 
     // Set initial positions
-    float initial_rho = 0.6;
+    float initial_rho = 1;
     float initial_theta = 3.14;
 
     // Initialize PD Controllers
-    PDController thetaController(0.5, 0.05, initial_theta);
-    PDController rhoController( 2.25 , 0.125, initial_rho);
-
-    // Set initial rho and theta positions for 2 seconds
-    auto start_time = steady_clock::now();
-    while (steady_clock::now() - start_time < milliseconds(3000)) {
-        float current_position_0, current_velocity_0;
-        float current_position_1, current_velocity_1;
-
-        tie(current_position_0, current_velocity_0) = CANInterface::getEncoderEstimates(nodes[0]);
-        tie(current_position_1, current_velocity_1) = CANInterface::getEncoderEstimates(nodes[1]);
-
-        auto state_vars = getStateVariables(current_position_0, current_position_1, current_velocity_0, current_velocity_1);
-        float theta = get<4>(state_vars);
-        float rho = get<5>(state_vars);
-        float phi1 = get<1>(state_vars);
-        float phi2 = get<2>(state_vars);
-
-        float theta_torque = thetaController.update(theta, duration<float>(steady_clock::now().time_since_epoch()).count());
-        float rho_torque = rhoController.update(rho, duration<float>(steady_clock::now().time_since_epoch()).count());
-
-        auto motor_torques = getTorques(theta_torque, rho_torque);
-        CANInterface::setTorque(nodes[0], get<0>(motor_torques));
-        CANInterface::setTorque(nodes[1], get<1>(motor_torques));
-
-        this_thread::sleep_for(milliseconds(10)); // Increased control loop delay to 50 ms
-    }
-
+    PDController thetaController(30, 0.25, initial_theta);
+    PDController rhoController( 38 , 0.25, initial_rho);
      
     // Final desired targets (in radians)
     float final_target_rho = 3.0;
     float final_target_theta = 3.14;
 
     // Define desired maximum velocities (setpoint update rates) in rad/s
-    float desired_theta_velocity = 100;  // Adjust as needed
+    float desired_theta_velocity = 100; 
 
-    // Initialize PD controllers with the current (initial) setpoints.
-    thetaController = PDController(30, 0.25, initial_theta);
-    rhoController = PDController(30, 0.25, initial_rho);
-
+    // Add a two second sleep
+    this_thread::sleep_for(chrono::seconds(2));
+    
     // Main control loop
     vector<vector<double>> data_log;
     auto elapsed_start_time = steady_clock::now();
@@ -211,8 +184,10 @@ int main() {
         auto now = system_clock::now();
         time_t now_c = system_clock::to_time_t(now);
         stringstream ss;
-        ss << put_time(localtime(&now_c), "%H%M_%m%d");
-        string filename = test_string + "[" + ss.str() + "]_" + to_string(desired_rho_velocity) + ".csv";
+        ss << put_time(localtime(&now_c), "%d%m_%H%M");
+        stringstream velocity_stream;
+        velocity_stream << fixed << setprecision(2) << desired_rho_velocity;
+        string filename = test_string + "[" + ss.str() + "]" + velocity_stream.str() + ".csv";
         string file_path = "/home/traveler/Traveler_Hopper_sw-bundle/Data/DPROBE";
         string full_path = file_path + "/" + filename;
 

@@ -11,7 +11,7 @@ import RPi.GPIO as GPIO
 # Setup GPIO for PWM
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(13, GPIO.OUT)
-pwm = GPIO.PWM(13, 1)  # Set frequency to 1Hz
+pwm = GPIO.PWM(13, 0.5)  # Set frequency to 1Hz
 
 class PDController:
     def __init__(self, Kp, Kd, setpoint):
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     nodes = [0, 1]
     
     # Final desired targets (in radians)
-    final_target_rho = 2.6
+    final_target_rho = 3
     final_target_theta = 3.14
 
     # Connect to the CAN bus
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     set_torque(Motor0, Motor0_Torque)
     set_torque(Motor1, Motor1_Torque)
 
-    time.sleep(3)
+    time.sleep(2)
 
     # -------------------------------------------------------
     # Get the current state to initialize the setpoints.
@@ -189,12 +189,12 @@ if __name__ == "__main__":
 
     # Define desired maximum velocities (setpoint update rates) in rad/s
     desired_theta_velocity = 500  # Adjust as needed
-    desired_rho_velocity   = 12  # Adjust as needed
+    desired_rho_velocity   = 0.005  # Adjust as needed
 
     # Initialize PD controllers with the current (initial) setpoints.
     # The gains remain constant here.
-    Theta_PD_Controller = PDController(30, 0.25, current_theta_setpoint)
-    Rho_PD_Controller   = PDController(20, 0.2, current_rho_setpoint)
+    Theta_PD_Controller = PDController(70, 0.25, current_theta_setpoint)
+    Rho_PD_Controller   = PDController(120, 0.65, current_rho_setpoint)
     # -------------------------------------------------------
 
     # Setup data logging
