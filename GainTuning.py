@@ -3,6 +3,8 @@ import json
 import time
 import can
 import traceback
+import math
+from odrive.enums import MotorType, ControlMode, InputMode, Protocol, EncoderId, Rs485EncoderMode
 
 # -- start load
 try:
@@ -147,23 +149,67 @@ def main():
         vel_gain = 0.825
         int_gain = 0.0
 
-        # Write gains and save for each motor
+        # new ODrive‐style configs
+        additional_configs = {
+            'config.dc_bus_overvoltage_trip_level':                   48,
+            'config.dc_bus_undervoltage_trip_level':                 10.5,
+            'config.dc_max_positive_current':                        15,
+            'config.dc_max_negative_current':                        float('-inf'),
+            'config.brake_resistor0.enable':                         False,
+            'axis0.config.motor.motor_type':                         MotorType.HIGH_CURRENT,
+            'axis0.config.motor.pole_pairs':                         21,
+            'axis0.config.motor.torque_constant':                    0.09188888888888888,
+            'axis0.config.motor.current_soft_max':                   20,
+            'axis0.config.motor.current_hard_max':                   45,
+            'axis0.config.motor.calibration_current':                10,
+            'axis0.config.motor.resistance_calib_max_voltage':       2,
+            'axis0.config.calibration_lockin.current':               10,
+            'axis0.motor.motor_thermistor.config.enabled':           False,
+            'axis0.controller.config.control_mode':                  ControlMode.TORQUE_CONTROL,
+            'axis0.controller.config.input_mode':                    InputMode.PASSTHROUGH,
+            'axis0.controller.config.vel_limit':                     15,
+            'axis0.controller.config.vel_limit_tolerance':           1.3333333333333333,
+            'axis0.config.torque_soft_min':                          -4.2,
+            'axis0.config.torque_soft_max':                          4.2,
+            'can.config.protocol':                                   Protocol.SIMPLE,
+            'can.config.baud_rate':                                  1000000,
+            'axis0.config.can.heartbeat_msg_rate_ms':                100,
+            'axis0.config.can.encoder_msg_rate_ms':                  0,
+            'axis0.config.can.iq_msg_rate_ms':                       0,
+            'axis0.config.can.torques_msg_rate_ms':                  0,
+            'axis0.config.can.error_msg_rate_ms':                    0,
+            'axis0.config.can.temperature_msg_rate_ms':              0,
+            'axis0.config.can.bus_voltage_msg_rate_ms':              0,
+            'axis0.config.enable_watchdog':                          False,
+            'axis0.config.load_encoder':                             EncoderId.RS485_ENCODER0,
+            'axis0.config.commutation_encoder':                      EncoderId.RS485_ENCODER0,
+            'rs485_encoder_group0.config.mode':                      Rs485EncoderMode.AMT21_EVENT_DRIVEN,
+            'config.enable_uart_a':                                  False,
+        }
+
+        # apply all for motor 0
+        for path, val in additional_configs.items():
+            send_message(node_id_0, path, val)
+        # now your three gains + save
         send_message(node_id_0, path_pos, pos_gain)
         send_message(node_id_0, path_vel, vel_gain)
         send_message(node_id_0, path_int, int_gain)
         save_config(node_id_0, path_save_config)
 
+        # repeat for motor 1
+        for path, val in additional_configs.items():
+            send_message(node_id_1, path, val)
         send_message(node_id_1, path_pos, pos_gain)
         send_message(node_id_1, path_vel, vel_gain)
         send_message(node_id_1, path_int, int_gain)
         save_config(node_id_1, path_save_config)
+        # -- end write
 
         time.sleep(9)
         # Calibrate each motor
         calibrate_motor(node_id_0)
         time.sleep(9)
         calibrate_motor(node_id_1)
-        # -- end write
 
         print("Success: All operations completed without errors.")
     except Exception as e:

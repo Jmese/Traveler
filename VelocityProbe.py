@@ -157,7 +157,7 @@ if __name__ == "__main__":
     set_torque_control_mode(Motor1)
 
     # Set initial rho and theta positions for 2 seconds
-    initial_rho = 0.8
+    initial_rho = 0.6
     initial_theta = 3.14
 
     current_time = time.time()  
@@ -189,12 +189,12 @@ if __name__ == "__main__":
 
     # Define desired maximum velocities (setpoint update rates) in rad/s
     desired_theta_velocity = 500  # Adjust as needed
-    desired_rho_velocity   = 0.005  # Adjust as needed
+    desired_rho_velocity   = 0.1  # Adjust as needed
 
     # Initialize PD controllers with the current (initial) setpoints.
     # The gains remain constant here.
-    Theta_PD_Controller = PDController(70, 0.25, current_theta_setpoint)
-    Rho_PD_Controller   = PDController(120, 0.65, current_rho_setpoint)
+    Theta_PD_Controller = PDController(30, 0.2, current_theta_setpoint)
+    Rho_PD_Controller   = PDController(50, 0.21, current_rho_setpoint)
     # -------------------------------------------------------
 
     # Setup data logging

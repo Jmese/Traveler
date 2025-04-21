@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/traveler/Traveler_Hopper_sw-bundle/cpp-staged-velocity-probe/src/PDController.cpp
+PDController.h
+/home/traveler/Traveler_Hopper_sw-bundle/cpp-staged-velocity-probe/src/PDController.h
+
+/home/traveler/Traveler_Hopper_sw-bundle/cpp-staged-velocity-probe/src/PDController.h
+
