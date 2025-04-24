@@ -72,8 +72,8 @@ int main() {
     float initial_theta = 3.14;
 
     // Initialize PD Controllers
-    PDController thetaController(0.5, 0.05, initial_theta);
-    PDController rhoController(2.25, 0.125, initial_rho);
+    PDController thetaController(4.5, 0.25, initial_theta);
+    PDController rhoController(8.25, 0.215, initial_rho);
 
     // Final desired targets (in radians) and velocities
     float final_target_rho = user_final_rho;
@@ -81,18 +81,19 @@ int main() {
     float desired_theta_velocity = 100.0f;
 
     // Initialize PD controllers
-    thetaController = PDController(30, 0.25, initial_theta);
-    rhoController = PDController(55, 0.25, initial_rho);
+    thetaController = PDController(30, 0.235, initial_theta);
+    rhoController = PDController(50, 0.235, initial_rho);
 
-    // Start data collection immediately, but hold off on moving motors for 2 s
-    auto data_collection_start_time = steady_clock::now();
-    bool motors_started = false;
-    auto last_setpoint_update_time = data_collection_start_time;
-
+    // Declare data_log at the beginning of the main function
     vector<vector<double>> data_log;
-    auto elapsed_start_time = steady_clock::now();
 
     try {
+        auto data_collection_start_time = steady_clock::now();
+        auto elapsed_start_time = steady_clock::now();
+        bool hold_position_phase = true; // Flag to indicate the initial hold position phase
+        bool motors_started = false;
+        auto last_setpoint_update_time = data_collection_start_time;
+
         while (!stop) {
             auto current_time = steady_clock::now();
 
@@ -108,12 +109,18 @@ int main() {
 
             float theta_torque = 0.0f, rho_torque = 0.0f;
 
-            if (elapsed_data >= 2.0f) {
-                // After 2 s, start ramping setpoints & computing torques
-                if (!motors_started) {
-                    motors_started = true;
-                }
+            if (hold_position_phase) {
+                // Hold initial position for 2 seconds
+                theta_torque = thetaController.update(theta, duration<float>(current_time.time_since_epoch()).count());
+                rho_torque = rhoController.update(rho, duration<float>(current_time.time_since_epoch()).count());
 
+                if (elapsed_data >= 2.0f) {
+                    hold_position_phase = false; // Transition to the main control loop
+                    motors_started = true;
+                    last_setpoint_update_time = current_time; // Reset setpoint update time
+                }
+            } else {
+                // Main control loop
                 float dt_sp = duration<float>(current_time - last_setpoint_update_time).count();
                 if (dt_sp > 0) {
                     // 1) Update theta setpoint, but don’t overshoot final_target_theta
@@ -151,7 +158,7 @@ int main() {
                 rho_torque = rhoController.update(rho, duration<float>(current_time.time_since_epoch()).count());
             }
 
-            // 3) Send torques (zero for first 2 s)
+            // 3) Send torques
             auto motor_torques = getTorques(theta_torque, rho_torque);
             CANInterface::setTorque(nodes[0], get<0>(motor_torques));
             CANInterface::setTorque(nodes[1], get<1>(motor_torques));

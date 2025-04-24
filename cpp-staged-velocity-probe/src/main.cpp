@@ -28,7 +28,7 @@ int main() {
     cout << "Enter the final rho setpoint: ";
     cin >> final_rho;
 
-    StagedProbe probe(divisions, 3.14, 0.6, 3.14, final_rho, pause_duration);
+    StagedProbe probe(divisions, 3.14, 0.7, 3.14, final_rho, pause_duration);
 
     try {
         probe.initializeStages();

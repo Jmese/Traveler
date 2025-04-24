@@ -11,13 +11,24 @@
 #include <cmath>
 #include <vector>
 #include <array>
+#include <csignal> // For signal handling
 
 using namespace std;
 using namespace std::chrono;
 
+// Global flag to indicate if the program should exit
+volatile sig_atomic_t stop_execution = 0;
+
+// Signal handler for SIGINT
+void handleSignal(int signal) {
+    if (signal == SIGINT) {
+        stop_execution = 1;
+    }
+}
+
 StagedProbe::StagedProbe(int divisions, float start_theta, float start_rho, float final_theta, float final_rho, float pause_duration)
     : divisions(divisions), start_theta(start_theta), start_rho(start_rho), final_theta(final_theta), final_rho(final_rho), pause_duration(pause_duration),
-      thetaController(1.0, 0.175, start_theta), rhoController(4.0, 0.225, start_rho) {}
+      thetaController(3.5, 0.2, start_theta), rhoController(4.5, 0.2, start_rho) {}
 
 void StagedProbe::initializeStages() {
     d_theta = (final_theta - start_theta) / divisions;
@@ -48,10 +59,13 @@ void StagedProbe::initializeStages() {
 }
 
 void StagedProbe::executeStages() {
+    // Register the signal handler
+    signal(SIGINT, handleSignal);
+
     elapsed_start_time = steady_clock::now();
     data_log.clear();
 
-    for (int i = 0; i <= divisions; ++i) {
+    for (int i = 0; i <= divisions && !stop_execution; ++i) {
         float target_theta = start_theta + i * d_theta;
         float target_rho = start_rho + i * d_rho;
         thetaController.setpoint = target_theta;
@@ -64,7 +78,7 @@ void StagedProbe::executeStages() {
         // Calculate the end time for the current stage
         auto t_end = steady_clock::now() + chrono::duration<double>(pause_duration);
 
-        while (steady_clock::now() < t_end) {
+        while (steady_clock::now() < t_end && !stop_execution) {
             // Get encoder estimates
             float p0, v0, p1, v1;
             tie(p0, v0) = CANInterface::getEncoderEstimates(0);
@@ -87,10 +101,15 @@ void StagedProbe::executeStages() {
 
             // Log data
             double elapsed_time = duration<double>(steady_clock::now() - elapsed_start_time).count();
-            data_log.push_back({elapsed_time, p0, p1, get<0>(motor_torques), get<1>(motor_torques)});
+            data_log.push_back({elapsed_time, p0, p1, v0, v1,  get<0>(motor_torques), get<1>(motor_torques)});
 
             // Sleep for a short duration to maintain control loop frequency
             this_thread::sleep_for(milliseconds(1));
+        }
+
+        if (stop_execution) {
+            cout << "Keyboard interrupt detected. Exiting gracefully..." << endl;
+            break;
         }
     }
 }
